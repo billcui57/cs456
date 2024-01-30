@@ -1,4 +1,5 @@
 import argparse
+import os
 import socket
 import logging
 
@@ -7,6 +8,9 @@ from custom_types import Request, GetRequestBody, Response
 logging.basicConfig()
 logging.root.setLevel(logging.NOTSET)
 logger = logging.getLogger('client')
+
+BUF_SIZE = 1024
+DOWNLOAD_DIR = "download"
 def main():
     parser = argparse.ArgumentParser(description='Client program.')
     parser.add_argument('server_address',  type=str,
@@ -16,7 +20,9 @@ def main():
     args = parser.parse_args()
 
     logger.info("Client starting")
-    HOST = "127.0.0.1"
+    HOST = socket.gethostname()
+
+    FILE_NAME = "hey.txt"
 
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
@@ -24,11 +30,11 @@ def main():
             client_r_port = tcp_socket.getsockname()[1]
 
 
-            request = Request(type="GET", body=GetRequestBody(receive_port=client_r_port, file_name="hey").__dict__)
+            request = Request(type="GET", body=GetRequestBody(receive_port=client_r_port, file_name=FILE_NAME).__dict__)
             udp_socket.sendto(request.to_json().encode("utf-8"), (args.server_address, args.n_port))
 
             # negotiation stage
-            data, server = udp_socket.recvfrom(1024)
+            data, server = udp_socket.recvfrom(BUF_SIZE)
             logger.info("Got response from server")
 
             response_json = data.decode('utf-8')
@@ -48,9 +54,28 @@ def main():
             logger.info("Transaction stage")
             tcp_socket.listen(5)
             logger.info(f"TCP socket is listening on {client_r_port}")
-            while True:
-                conn,addr = tcp_socket.accept()
-                logger.info(f"Got connection from {addr}")
+            conn,addr = tcp_socket.accept()
+            logger.info(f"Got connection from {addr}")
+
+            down_file = os.path.join(DOWNLOAD_DIR, FILE_NAME)
+
+            file_size = int(conn.recv(BUF_SIZE).decode())
+            conn.sendall(str("OK").encode())
+            logger.info(f"Going to receive file of size {file_size}")
+
+            with open(down_file, 'wb') as output:
+                bytes_received = 0
+                while bytes_received < file_size:
+                    recieved_buffer = conn.recv(BUF_SIZE)
+                    if not recieved_buffer:
+                        break
+                    output.write(recieved_buffer)
+                    logger.info(f"Received chunk of size {len(recieved_buffer)} bytes")
+                    bytes_received += len(recieved_buffer)
+
+            logger.info("Transfer complete")
+
+
 
 
 
