@@ -11,28 +11,18 @@ logger = logging.getLogger('client')
 
 BUF_SIZE = 1024
 DOWNLOAD_DIR = "download"
-def main():
-    parser = argparse.ArgumentParser(description='Client program.')
-    parser.add_argument('server_address',  type=str,
-                        help='address of server')
-    parser.add_argument('n_port',  type=int,
-                        help='negotiation port')
-    parser.add_argument('command', type=str, help="command to do")
-    parser.add_argument('filename', type=str, help="file to get or put")
-    args = parser.parse_args()
+SERVER_ADDRESS = ""
+SERVER_N_PORT = 0
 
-    logger.info("Client starting")
+
+def get():
     HOST = socket.gethostname()
-    FILE_NAME = args.filename
-
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
             tcp_socket.bind((HOST, 0))
             client_r_port = tcp_socket.getsockname()[1]
-
-
             request = Request(type="GET", body=GetRequestBody(receive_port=client_r_port, file_name=FILE_NAME).__dict__)
-            udp_socket.sendto(request.to_json().encode("utf-8"), (args.server_address, args.n_port))
+            udp_socket.sendto(request.to_json().encode("utf-8"), (SERVER_ADDRESS, SERVER_N_PORT))
 
             # negotiation stage
             data, server = udp_socket.recvfrom(BUF_SIZE)
@@ -69,6 +59,31 @@ def main():
                     logger.info(f"Received chunk of size {len(recieved_buffer)} bytes")
 
             logger.info("Transfer complete")
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Client program.')
+    parser.add_argument('server_address',  type=str,
+                        help='address of server')
+    parser.add_argument('n_port',  type=int,
+                        help='negotiation port')
+    parser.add_argument('command', type=str, help="command to do")
+    parser.add_argument('filename', type=str, help="file to get or put")
+    args = parser.parse_args()
+
+    logger.info("Client starting")
+
+    global FILE_NAME
+    global SERVER_N_PORT
+    global SERVER_ADDRESS
+    FILE_NAME = args.filename
+    SERVER_ADDRESS = args.server_address
+    SERVER_N_PORT = args.n_port
+
+    if args.command == "GET":
+        get()
+
+
 
 
 
