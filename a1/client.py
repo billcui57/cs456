@@ -120,12 +120,15 @@ def main():
     server_address = args.server_address
     server_n_port = args.n_port
 
-    if args.command == "GET":
-        get(file_name,server_address,server_n_port)
-    elif args.command == "PUT":
-        put(file_name,server_address,server_n_port)
-    else:
-        logger.warning("Invalid command")
+    try:
+        if args.command == "GET":
+            get(file_name,server_address,server_n_port)
+        elif args.command == "PUT":
+            put(file_name,server_address,server_n_port)
+        else:
+            logger.warning("Invalid command")
+    except Exception:
+        logger.exception("Client bad")
 
 
 
