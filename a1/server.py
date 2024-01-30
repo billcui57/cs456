@@ -10,17 +10,16 @@ logging.root.setLevel(logging.NOTSET)
 
 logger = logging.getLogger('server')
 BUF_SIZE = 1024
-STORAGE_DIR = "default"
 
 
-def handle_get(s,addr,get_request_body):
+def handle_get(s,addr,get_request_body,storage_dir):
     logger.info("Handle Get Cmd")
     logger.info(get_request_body)
 
     # negotiation stage
-    down_file = os.path.join(STORAGE_DIR, get_request_body.file_name)
+    down_file = os.path.join(storage_dir, get_request_body.file_name)
 
-    if not STORAGE_DIR or not os.path.isfile(down_file):
+    if not storage_dir or not os.path.isfile(down_file):
         resp = Response(code=404, body={})
         response_json = resp.to_json().encode("utf-8")
         s.sendto(response_json, addr)
@@ -65,8 +64,8 @@ def main():
     args = parser.parse_args()
 
     HOST = socket.gethostname()
-    global STORAGE_DIR
-    STORAGE_DIR = args.storage
+
+    storage_dir = args.storage
 
     logger.info("Server starting")
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
@@ -88,7 +87,7 @@ def main():
 
                 if request.type == "GET":
                     get_request_body = GetRequestBody(**request.body)
-                    handle_get(udp_socket,addr,get_request_body)
+                    handle_get(udp_socket,addr,get_request_body,storage_dir)
 
 
 
