@@ -3,7 +3,7 @@ import math
 import socket
 import os
 import logging
-from custom_types import Request, GetRequestBody, Response
+from custom_types import Request, GetRequestBody, Response, PutRequestBody, PutResponseBody
 
 logging.basicConfig()
 logging.root.setLevel(logging.NOTSET)
@@ -56,6 +56,39 @@ def handle_get(s,addr,get_request_body,storage_dir):
                 chunk_idx += 1
         logger.info("Done sending")
 
+def handle_put(s,addr,put_request_body,storage_dir):
+    logger.info("Handle Put Cmd")
+    logger.info(put_request_body)
+
+    # negotiation stage
+    upload_file = os.path.join(storage_dir, put_request_body.file_name)
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
+        tcp_socket.bind((socket.gethostname(),0))
+        server_receive_port = tcp_socket.getsockname()[1]
+        logger.info(f"Ready to receive file on port {server_receive_port}")
+        response_body = PutResponseBody(receive_port=server_receive_port)
+        resp = Response(code=200, body=response_body.__dict__)
+        response_json = resp.to_json().encode("utf-8")
+        s.sendto(response_json, addr)
+
+        # transaction stage
+        logger.info("Transaction stage")
+        tcp_socket.listen(5)
+        conn, addr = tcp_socket.accept()
+        logger.info(f"Got connection from {addr}")
+
+        with open(upload_file, 'wb') as output:
+            while True:
+                recieved_buffer = conn.recv(BUF_SIZE)
+                if not recieved_buffer:
+                    break
+                output.write(recieved_buffer)
+                logger.info(f"Received chunk of size {len(recieved_buffer)} bytes")
+
+        logger.info("Transfer complete")
+
+
 
 def main():
     parser = argparse.ArgumentParser(description='Server program.')
@@ -71,8 +104,7 @@ def main():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
 
             udp_socket.bind((HOST, 0))
-            server_n_port = udp_socket.getsockname()
-            logger.info(f"Ready to receive on host {HOST} port {server_n_port}")
+            logger.info(f"Ready to receive on {udp_socket.getsockname()}")
             while True:
                 data,addr = udp_socket.recvfrom(BUF_SIZE)
                 if not data:
@@ -88,6 +120,13 @@ def main():
                 if request.type == "GET":
                     get_request_body = GetRequestBody(**request.body)
                     handle_get(udp_socket,addr,get_request_body,storage_dir)
+                elif request.type == "PUT":
+                    put_request_body = PutRequestBody(**request.body)
+                    handle_put(udp_socket,addr,put_request_body,storage_dir)
+                else:
+                    resp = Response(code=400, body={})
+                    response_json = resp.to_json().encode("utf-8")
+                    udp_socket.sendto(response_json, addr)
 
 
 

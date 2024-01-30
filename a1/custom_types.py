@@ -6,6 +6,13 @@ class GetRequestBody:
     file_name: str
     receive_port: int
 
+@dataclass
+class PutRequestBody:
+    file_name: str
+
+@dataclass
+class PutResponseBody:
+    receive_port: int
 
 @dataclass
 class Request:
