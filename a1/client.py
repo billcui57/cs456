@@ -17,12 +17,13 @@ def main():
                         help='address of server')
     parser.add_argument('n_port',  type=int,
                         help='negotiation port')
+    parser.add_argument('command', type=str, help="command to do")
+    parser.add_argument('filename', type=str, help="file to get or put")
     args = parser.parse_args()
 
     logger.info("Client starting")
     HOST = socket.gethostname()
-
-    FILE_NAME = "hey.txt"
+    FILE_NAME = args.filename
 
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
@@ -59,19 +60,13 @@ def main():
 
             down_file = os.path.join(DOWNLOAD_DIR, FILE_NAME)
 
-            file_size = int(conn.recv(BUF_SIZE).decode())
-            conn.sendall(str("OK").encode())
-            logger.info(f"Going to receive file of size {file_size}")
-
             with open(down_file, 'wb') as output:
-                bytes_received = 0
-                while bytes_received < file_size:
+                while True:
                     recieved_buffer = conn.recv(BUF_SIZE)
                     if not recieved_buffer:
                         break
                     output.write(recieved_buffer)
                     logger.info(f"Received chunk of size {len(recieved_buffer)} bytes")
-                    bytes_received += len(recieved_buffer)
 
             logger.info("Transfer complete")
 

@@ -1,5 +1,6 @@
+import argparse
+import math
 import socket
-from dotenv import load_dotenv
 import os
 import logging
 from custom_types import Request, GetRequestBody, Response
@@ -7,18 +8,18 @@ from custom_types import Request, GetRequestBody, Response
 logging.basicConfig()
 logging.root.setLevel(logging.NOTSET)
 
-
 logger = logging.getLogger('server')
-
 BUF_SIZE = 1024
-
-STORAGE_DIR = "storage"
-
 
 
 def main():
-    load_dotenv()
+    parser = argparse.ArgumentParser(description='Server program.')
+    parser.add_argument('storage',  type=str,
+                        help='storage directory')
+    args = parser.parse_args()
+
     HOST = socket.gethostname()
+    STORAGE_DIR = args.storage
 
     logger.info("Server starting")
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
@@ -43,8 +44,10 @@ def main():
                     logger.info("Handle Get Cmd")
                     logger.info(get_request_body)
 
-                    if not STORAGE_DIR:
-                        resp = Response(code=200, body={})
+                    down_file = os.path.join(STORAGE_DIR, get_request_body.file_name)
+
+                    if not STORAGE_DIR or not os.path.isfile(down_file):
+                        resp = Response(code=404, body={})
                         response_json = resp.to_json().encode("utf-8")
                         udp_socket.sendto(response_json, addr)
                     # If has file
@@ -64,16 +67,13 @@ def main():
                             tcp_socket.connect(transaction_client_addr)
                             logger.info(f"Connected to {transaction_client_addr}")
 
-                            down_file = os.path.join(STORAGE_DIR, get_request_body.file_name)
+
 
                             file_size = os.path.getsize(down_file)
                             logger.info(f"File is of size {file_size} bytes")
-
-                            logger.info(f"Sending file size")
-                            tcp_socket.sendall(str(file_size).encode())
-                            tcp_socket.recv(BUF_SIZE).decode()
-
                             logger.info(f"Sending file in chunks of size {BUF_SIZE}")
+                            total_chunks = math.ceil(file_size/BUF_SIZE)
+
                             with open(down_file, 'rb') as output:
                                 chunk_idx = 0
                                 while True:
@@ -81,7 +81,7 @@ def main():
                                     if not data:
                                         break
                                     tcp_socket.sendall(data)
-                                    logger.info(f"Sent chunk {chunk_idx}")
+                                    logger.info(f"Sent chunk {chunk_idx+1}/{total_chunks}")
                                     chunk_idx+=1
                             logger.info("Done sending")
 
