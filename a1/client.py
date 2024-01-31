@@ -116,6 +116,7 @@ def main():
     args = parser.parse_args()
 
     logger.info("Client starting")
+    logger.info(f"Client hostname {socket.gethostname()}")
 
     file_name = args.filename
     server_address = args.server_address

@@ -101,6 +101,7 @@ def main():
     storage_dir = args.storage
 
     logger.info("Server starting")
+    logger.info(f"Server hostname {socket.gethostname()}")
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
 
             udp_socket.bind((HOST, 0))
