@@ -20,6 +20,9 @@ def get(file_name,server_address,server_n_port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
             tcp_socket.bind((HOST, 0))
             client_r_port = tcp_socket.getsockname()[1]
+            tcp_socket.listen(5)
+            logger.info(f"TCP socket is listening on {client_r_port}")
+
             request = Request(type="GET", body=GetRequestBody(receive_port=client_r_port, file_name=file_name).__dict__)
             udp_socket.sendto(request.to_json().encode("utf-8"), (server_address, server_n_port))
 
@@ -42,8 +45,6 @@ def get(file_name,server_address,server_n_port):
 
             # transaction stage
             logger.info("Transaction stage")
-            tcp_socket.listen(5)
-            logger.info(f"TCP socket is listening on {client_r_port}")
             conn,addr = tcp_socket.accept()
             logger.info(f"Got connection from {addr}")
 
