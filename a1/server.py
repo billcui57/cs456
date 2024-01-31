@@ -106,27 +106,30 @@ def main():
             udp_socket.bind((HOST, 0))
             logger.info(f"Ready to receive on {udp_socket.getsockname()}")
             while True:
-                data,addr = udp_socket.recvfrom(BUF_SIZE)
-                if not data:
-                    break
                 try:
-                    request_json = data.decode('utf-8')
-                    request = Request.from_json(request_json)
-                except Exception as e:
-                    logger.exception("Failed to unmarshal request")
-                    break
-                logger.info(request)
+                    data,addr = udp_socket.recvfrom(BUF_SIZE)
+                    if not data:
+                        break
+                    try:
+                        request_json = data.decode('utf-8')
+                        request = Request.from_json(request_json)
+                    except Exception as e:
+                        logger.exception("Failed to unmarshal request")
+                        break
+                    logger.info(request)
 
-                if request.type == "GET":
-                    get_request_body = GetRequestBody(**request.body)
-                    handle_get(udp_socket,addr,get_request_body,storage_dir)
-                elif request.type == "PUT":
-                    put_request_body = PutRequestBody(**request.body)
-                    handle_put(udp_socket,addr,put_request_body,storage_dir)
-                else:
-                    resp = Response(code=400, body={})
-                    response_json = resp.to_json().encode("utf-8")
-                    udp_socket.sendto(response_json, addr)
+                    if request.type == "GET":
+                        get_request_body = GetRequestBody(**request.body)
+                        handle_get(udp_socket,addr,get_request_body,storage_dir)
+                    elif request.type == "PUT":
+                        put_request_body = PutRequestBody(**request.body)
+                        handle_put(udp_socket,addr,put_request_body,storage_dir)
+                    else:
+                        resp = Response(code=400, body={})
+                        response_json = resp.to_json().encode("utf-8")
+                        udp_socket.sendto(response_json, addr)
+                except Exception:
+                    logger.exception("Could not service")
 
 
 
