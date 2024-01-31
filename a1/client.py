@@ -18,7 +18,7 @@ def get(file_name,server_address,server_n_port):
     HOST = socket.gethostbyname(socket.gethostname())
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
-            tcp_socket.bind((HOST, 0))
+            tcp_socket.bind(("", 0))
             client_r_port = tcp_socket.getsockname()[1]
             tcp_socket.listen(5)
             logger.info(f"TCP socket is listening on {tcp_socket.getsockname()}")

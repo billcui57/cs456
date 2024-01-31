@@ -66,7 +66,7 @@ def handle_put(s,addr,put_request_body,storage_dir):
     upload_file = os.path.join(storage_dir, put_request_body.file_name)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
-        tcp_socket.bind((HOST,0))
+        tcp_socket.bind(("",0))
         server_receive_port = tcp_socket.getsockname()[1]
         logger.info(f"Ready to receive file on port {tcp_socket.getsockname()}")
         response_body = PutResponseBody(receive_port=server_receive_port)
@@ -106,7 +106,7 @@ def main():
     logger.info(f"Server host {HOST}")
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
 
-            udp_socket.bind((HOST, 0))
+            udp_socket.bind(("", 0))
             logger.info(f"Ready to receive on {udp_socket.getsockname()}")
             while True:
                 try:
