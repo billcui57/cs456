@@ -60,11 +60,13 @@ def handle_put(s,addr,put_request_body,storage_dir):
     logger.info("Handle Put Cmd")
     logger.info(put_request_body)
 
+    HOST = socket.gethostbyname(socket.gethostname())
+
     # negotiation stage
     upload_file = os.path.join(storage_dir, put_request_body.file_name)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
-        tcp_socket.bind((socket.gethostname(),0))
+        tcp_socket.bind((HOST,0))
         server_receive_port = tcp_socket.getsockname()[1]
         logger.info(f"Ready to receive file on port {server_receive_port}")
         response_body = PutResponseBody(receive_port=server_receive_port)
@@ -96,12 +98,12 @@ def main():
                         help='storage directory')
     args = parser.parse_args()
 
-    HOST = socket.gethostname()
+    HOST = socket.gethostbyname(socket.gethostname())
 
     storage_dir = args.storage
 
     logger.info("Server starting")
-    logger.info(f"Server hostname {socket.gethostname()}")
+    logger.info(f"Server host {HOST}")
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
 
             udp_socket.bind((HOST, 0))

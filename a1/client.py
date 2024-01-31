@@ -15,7 +15,7 @@ DOWNLOAD_DIR = "download"
 UPLOAD_DIR = "upload"
 
 def get(file_name,server_address,server_n_port):
-    HOST = socket.gethostname()
+    HOST = socket.gethostbyname(socket.gethostname())
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
             tcp_socket.bind((HOST, 0))
@@ -116,7 +116,7 @@ def main():
     args = parser.parse_args()
 
     logger.info("Client starting")
-    logger.info(f"Client hostname {socket.gethostname()}")
+    logger.info(f"Client host {socket.gethostbyname(socket.gethostname())}")
 
     file_name = args.filename
     server_address = args.server_address
