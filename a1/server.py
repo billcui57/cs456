@@ -68,7 +68,7 @@ def handle_put(s,addr,put_request_body,storage_dir):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
         tcp_socket.bind((HOST,0))
         server_receive_port = tcp_socket.getsockname()[1]
-        logger.info(f"Ready to receive file on port {server_receive_port}")
+        logger.info(f"Ready to receive file on port {tcp_socket.getsockname()}")
         response_body = PutResponseBody(receive_port=server_receive_port)
         resp = Response(code=200, body=response_body.__dict__)
         response_json = resp.to_json().encode("utf-8")
