@@ -7,7 +7,7 @@ import logging
 from custom_types import Request, GetRequestBody, Response, PutRequestBody, PutResponseBody
 
 logging.basicConfig()
-logging.root.setLevel(logging.NOTSET)
+logging.root.setLevel(logging.INFO)
 logger = logging.getLogger('client')
 
 BUF_SIZE = 1024
@@ -15,7 +15,6 @@ DOWNLOAD_DIR = "download"
 UPLOAD_DIR = "upload"
 
 def get(file_name,server_address,server_n_port):
-    HOST = socket.gethostbyname(socket.gethostname())
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
             tcp_socket.bind(("", 0))
@@ -23,10 +22,9 @@ def get(file_name,server_address,server_n_port):
             tcp_socket.listen(5)
             logger.info(f"TCP socket is listening on {tcp_socket.getsockname()}")
 
+            # negotiation stage
             request = Request(type="GET", body=GetRequestBody(receive_port=client_r_port, file_name=file_name).__dict__)
             udp_socket.sendto(request.to_json().encode("utf-8"), (server_address, server_n_port))
-
-            # negotiation stage
             data, server = udp_socket.recvfrom(BUF_SIZE)
             logger.info("Got response from server")
 
@@ -115,12 +113,23 @@ def main():
     parser.add_argument('filename', type=str, help="file to get or put")
     args = parser.parse_args()
 
+    # check that download and upload directories exist
+    if not os.path.exists(DOWNLOAD_DIR):
+        logger.error(f"Download directory (./download) does not exist")
+        return
+
+    if not os.path.exists(UPLOAD_DIR):
+        logger.error(f"Upload directory (./upload) does not exist")
+        return
+
     logger.info("Client starting")
     logger.info(f"Client host {socket.gethostbyname(socket.gethostname())}")
 
     file_name = args.filename
     server_address = args.server_address
     server_n_port = args.n_port
+
+
 
     try:
         if args.command == "GET":

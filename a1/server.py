@@ -6,7 +6,7 @@ import logging
 from custom_types import Request, GetRequestBody, Response, PutRequestBody, PutResponseBody
 
 logging.basicConfig()
-logging.root.setLevel(logging.NOTSET)
+logging.root.setLevel(logging.INFO)
 
 logger = logging.getLogger('server')
 BUF_SIZE = 1024
@@ -60,8 +60,6 @@ def handle_put(s,addr,put_request_body,storage_dir):
     logger.info("Handle Put Cmd")
     logger.info(put_request_body)
 
-    HOST = socket.gethostbyname(socket.gethostname())
-
     # negotiation stage
     upload_file = os.path.join(storage_dir, put_request_body.file_name)
 
@@ -102,12 +100,17 @@ def main():
 
     storage_dir = args.storage
 
+    # check if storage directory exists
+    if not os.path.isdir(storage_dir):
+        logger.error(f"Storage directory {storage_dir} does not exist")
+        return
+
     logger.info("Server starting")
     logger.info(f"Server host {HOST}")
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
-
             udp_socket.bind(("", 0))
             logger.info(f"Ready to receive on {udp_socket.getsockname()}")
+            print(f"SERVER_PORT={udp_socket.getsockname()[1]}")
             while True:
                 try:
                     data,addr = udp_socket.recvfrom(BUF_SIZE)
@@ -128,11 +131,12 @@ def main():
                         put_request_body = PutRequestBody(**request.body)
                         handle_put(udp_socket,addr,put_request_body,storage_dir)
                     else:
+                        # invalid request
                         resp = Response(code=400, body={})
                         response_json = resp.to_json().encode("utf-8")
                         udp_socket.sendto(response_json, addr)
                 except Exception:
-                    logger.exception("Could not service")
+                    logger.exception("Could not service request")
 
 
 

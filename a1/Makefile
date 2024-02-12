@@ -1,12 +1,11 @@
-assignment_num := 1
-username := b22cui
+clean-client:
+	@rm -rf download
+	@rm -rf upload
 
-run-server:
-	@python3 server.py
+setup-client:
+	@mkdir -p download
+	@mkdir -p upload
 
-run-client:
-	@python3 client.py
+clean-setup-client: clean-client setup-client
 
-
-run: run-server run-client
-.PHONY: run
+.PHONY: clean-client setup-client clean-setup-client
