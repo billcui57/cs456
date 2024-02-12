@@ -113,13 +113,6 @@ def main():
     parser.add_argument('filename', type=str, help="file to get or put")
     args = parser.parse_args()
 
-    logger.info("Client starting")
-    logger.info(f"Client host {socket.gethostbyname(socket.gethostname())}")
-
-    file_name = args.filename
-    server_address = args.server_address
-    server_n_port = args.n_port
-
     # check that download and upload directories exist
     if not os.path.exists(DOWNLOAD_DIR):
         logger.error(f"Directory {DOWNLOAD_DIR} does not exist")
@@ -128,6 +121,15 @@ def main():
     if not os.path.exists(UPLOAD_DIR):
         logger.error(f"Directory {UPLOAD_DIR} does not exist")
         return
+
+    logger.info("Client starting")
+    logger.info(f"Client host {socket.gethostbyname(socket.gethostname())}")
+
+    file_name = args.filename
+    server_address = args.server_address
+    server_n_port = args.n_port
+
+
 
     try:
         if args.command == "GET":
