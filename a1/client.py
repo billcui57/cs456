@@ -115,11 +115,11 @@ def main():
 
     # check that download and upload directories exist
     if not os.path.exists(DOWNLOAD_DIR):
-        logger.error(f"Directory {DOWNLOAD_DIR} does not exist")
+        logger.error(f"Download directory (./download) does not exist")
         return
 
     if not os.path.exists(UPLOAD_DIR):
-        logger.error(f"Directory {UPLOAD_DIR} does not exist")
+        logger.error(f"Upload directory (./upload) does not exist")
         return
 
     logger.info("Client starting")
