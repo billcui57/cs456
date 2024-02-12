@@ -100,6 +100,11 @@ def main():
 
     storage_dir = args.storage
 
+    # check if storage directory exists
+    if not os.path.isdir(storage_dir):
+        logger.error(f"Storage directory {storage_dir} does not exist")
+        return
+
     logger.info("Server starting")
     logger.info(f"Server host {HOST}")
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:

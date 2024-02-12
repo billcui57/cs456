@@ -120,6 +120,15 @@ def main():
     server_address = args.server_address
     server_n_port = args.n_port
 
+    # check that download and upload directories exist
+    if not os.path.exists(DOWNLOAD_DIR):
+        logger.error(f"Directory {DOWNLOAD_DIR} does not exist")
+        return
+
+    if not os.path.exists(UPLOAD_DIR):
+        logger.error(f"Directory {UPLOAD_DIR} does not exist")
+        return
+
     try:
         if args.command == "GET":
             get(file_name,server_address,server_n_port)
