@@ -7,7 +7,7 @@ import logging
 from custom_types import Request, GetRequestBody, Response, PutRequestBody, PutResponseBody
 
 logging.basicConfig()
-logging.root.setLevel(logging.NOTSET)
+logging.root.setLevel(logging.INFO)
 logger = logging.getLogger('client')
 
 BUF_SIZE = 1024

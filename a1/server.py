@@ -6,7 +6,7 @@ import logging
 from custom_types import Request, GetRequestBody, Response, PutRequestBody, PutResponseBody
 
 logging.basicConfig()
-logging.root.setLevel(logging.NOTSET)
+logging.root.setLevel(logging.INFO)
 
 logger = logging.getLogger('server')
 BUF_SIZE = 1024
@@ -108,6 +108,7 @@ def main():
 
             udp_socket.bind(("", 0))
             logger.info(f"Ready to receive on {udp_socket.getsockname()}")
+            print(f"SERVER_PORT={udp_socket.getsockname()[1]}")
             while True:
                 try:
                     data,addr = udp_socket.recvfrom(BUF_SIZE)
