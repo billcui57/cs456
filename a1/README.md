@@ -12,9 +12,10 @@ Requirements are in `requirements.txt` file
 
 You can generate files by using the `generate_files.py` script
 
-
 By default both client and server will produce full logging output.
 To reduce the amount of logging output, you can change the `LOG_LEVEL` variable in `client.py` and `server.py` to `logging.WARN` or above
+
+Only IP addresses are supported in the command line
 
 ### Server
 1. Create your own directory (e.g `mkdir storage`)
