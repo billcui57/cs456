@@ -15,7 +15,6 @@ DOWNLOAD_DIR = "download"
 UPLOAD_DIR = "upload"
 
 def get(file_name,server_address,server_n_port):
-    HOST = socket.gethostbyname(socket.gethostname())
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
             tcp_socket.bind(("", 0))
@@ -23,10 +22,9 @@ def get(file_name,server_address,server_n_port):
             tcp_socket.listen(5)
             logger.info(f"TCP socket is listening on {tcp_socket.getsockname()}")
 
+            # negotiation stage
             request = Request(type="GET", body=GetRequestBody(receive_port=client_r_port, file_name=file_name).__dict__)
             udp_socket.sendto(request.to_json().encode("utf-8"), (server_address, server_n_port))
-
-            # negotiation stage
             data, server = udp_socket.recvfrom(BUF_SIZE)
             logger.info("Got response from server")
 
