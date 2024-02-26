@@ -23,10 +23,15 @@ def main():
     parser.add_argument("file", type=str,help="Filename to write to")
     args = parser.parse_args()
 
+
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
+
+        emulator_addr = (args.emulator_host,args.emulator_udp_port)
+
         udp_socket.bind(("", args.receiver_udp_port))
 
-
+        packet_buffer = dict()
+        expected_seq_num = 0
         with open(args.file, 'w') as output:
             while True:
                 received_buffer, _ = udp_socket.recvfrom(BUFFER_SIZE)
@@ -36,11 +41,24 @@ def main():
                 if type == 2:
                     break
 
-                output.write(data)
                 logger.info(f"Received seq num {seq_num} chunk of length {length}")
+                packet_buffer[seq_num] = data
+
+                ack_packet = Packet(0, seq_num, 0, "")
+                udp_socket.sendto(ack_packet.encode(), emulator_addr)
+
+                while expected_seq_num in packet_buffer:
+                    logger.info(f"Writing seq num {expected_seq_num} to disk")
+                    output.write(packet_buffer[expected_seq_num])
+                    expected_seq_num += 1
+
 
         logger.info("Done receiving")
 
+        packet = Packet(2, seq_num, 0, "")
+        udp_socket.sendto(packet.encode(), emulator_addr)
+
+        logger.info("Sent EOT")
 
 
 
