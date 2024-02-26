@@ -42,8 +42,12 @@ def main():
                     break
 
                 logger.info(f"Received seq num {seq_num} chunk of length {length}")
+                if seq_num in packet_buffer:
+                    logger.info(f"Seq num {seq_num} was a duplicate")
+
                 packet_buffer[seq_num] = data
 
+                logger.info(f"Replying ack")
                 ack_packet = Packet(0, seq_num, 0, "")
                 udp_socket.sendto(ack_packet.encode(), emulator_addr)
 
