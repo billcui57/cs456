@@ -13,9 +13,12 @@ logging.root.setLevel(logging.INFO)
 
 logger = logging.getLogger('sender')
 
-BURST_SIZE = 10
+POOL_SIZE = 10
 PACKET_SIZE = 500
 BUFFER_SIZE = 2048
+
+SEQNUM_LOG_FILE = "seqnum.log"
+ACK_LOG_FILE = "ack.log"
 
 def main():
     parser = argparse.ArgumentParser(description='Sender program.')
@@ -29,52 +32,60 @@ def main():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
         udp_socket.settimeout(args.timeout/1000)
         udp_socket.bind(("", args.sender_udp_port))
-        
-        logger.info(f"Sending file in chunks of size {PACKET_SIZE} chars")
 
         seq_num = 0
-        burst_num = 0
-        terminate = False
+
+        send_pool = dict()
+
+        done_sending = False
         emulator_addr = (args.emulator_host,args.emulator_udp_port)
 
-        with open(args.file, 'r') as output:
-            while not terminate:
-                logger.info(f"Beginning burst")
-                packets_sent = dict()
-                seq_nums_waiting_ack = set()
-                for i in range(BURST_SIZE):
+
+        with open(args.file, 'r') as output, open(SEQNUM_LOG_FILE, "w") as seqnum_log, open(ACK_LOG_FILE,"w") as ack_log:
+
+            while True:
+
+                while len(send_pool.keys()) < POOL_SIZE:
                     data = output.read(PACKET_SIZE)
                     if not data:
-                        terminate = True
+                        done_sending = True
                         break
                     packet = Packet(1, seq_num, len(data), data)
                     udp_socket.sendto(packet.encode(), emulator_addr)
 
-                    packets_sent[seq_num] = packet
-                    seq_nums_waiting_ack.add(seq_num)
 
-                    logger.info(f"Sent seq num {seq_num} in burst {burst_num}")
+                    seqnum_log.write(f"{seq_num}\n")
+
+                    send_pool[seq_num] = packet
+                    logger.info(f"Sent seq num {seq_num}")
                     seq_num += 1
-                burst_num +=1
-                while len(seq_nums_waiting_ack) > 0:
+
+                logger.info(f"Send pool: {list(send_pool.keys())}")
+
+                if len(send_pool.keys()) > 0:
                     logger.info("Waiting for acks")
                     # get acks
                     try:
-                        received_buffer, _ = udp_socket.recvfrom(BUFFER_SIZE)
-                        type, ack_seq_num, length, data = Packet(received_buffer).decode()
-                        if type != 0:
-                            logger.error("Not supposed to get anything other than an ack")
-                        logger.info(f"Got ack for seq num {ack_seq_num}")
+                        while True:
+                            received_buffer, _ = udp_socket.recvfrom(BUFFER_SIZE)
+                            type, ack_seq_num, length, data = Packet(received_buffer).decode()
+                            if type != 0:
+                                logger.error("Not supposed to get anything other than an ack")
+                            logger.info(f"Got ack for seq num {ack_seq_num}")
 
-                        if ack_seq_num in seq_nums_waiting_ack:
-                            seq_nums_waiting_ack.remove(ack_seq_num)
+                            if ack_seq_num in send_pool:
+                                send_pool.pop(ack_seq_num, 0)
+
+
+                            ack_log.write(f"{ack_seq_num}\n")
                     except socket.timeout:
-                        logger.info("Could not get acks back in time")
-                        # retransmitting
-                        for seq_num_waiting_ack in seq_nums_waiting_ack:
-                            udp_socket.sendto(packets_sent[seq_num_waiting_ack].encode(), emulator_addr)
-                            logger.info(f"Resending seq num {seq_num_waiting_ack}")
-
+                        logger.info("Timeout")
+                        for resend_seq_num, resend_packet in send_pool.items():
+                            logger.info(f"Resending seq num {resend_seq_num}")
+                            udp_socket.sendto(resend_packet.encode(), emulator_addr)
+                            seqnum_log.write(f"{resend_seq_num}\n")
+                if len(send_pool.keys()) == 0 and done_sending:
+                    break
 
 
 
@@ -89,20 +100,9 @@ def main():
             received_buffer, _ = udp_socket.recvfrom(BUFFER_SIZE)
             type, seq_num, length, data = Packet(received_buffer).decode()
             if type == 2:
+                with open(ACK_LOG_FILE, "a") as log_file:
+                    log_file.write("EOT\n")
                 break
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -15,6 +15,8 @@ BURST_SIZE = 10
 PACKET_SIZE = 500
 BUFFER_SIZE = 2048
 
+ARRIVAL_LOG_FILE = "arrival.log"
+
 def main():
     parser = argparse.ArgumentParser(description='Receiver program.')
     parser.add_argument("emulator_host", type=str,help="Host address of the emulator")
@@ -32,14 +34,19 @@ def main():
 
         packet_buffer = dict()
         expected_seq_num = 0
-        with open(args.file, 'w') as output:
+        with open(args.file, 'w') as output, open(ARRIVAL_LOG_FILE, "w") as log_file:
             while True:
                 received_buffer, _ = udp_socket.recvfrom(BUFFER_SIZE)
                 type, seq_num, length, data = Packet(received_buffer).decode()
 
                 # EOT
                 if type == 2:
+                    with open(ARRIVAL_LOG_FILE, "a") as log_file:
+                        log_file.write("EOT\n")
                     break
+
+                log_file.write(f"{seq_num}\n")
+
 
                 logger.info(f"Received seq num {seq_num} chunk of length {length}")
                 if seq_num in packet_buffer:
