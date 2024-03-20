@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 
-#h1 <-> h4
-
-# Sets bridge s1 to use OpenFlow 1.3
+# Sets bridges to use OpenFlow 1.3
+ovs-vsctl set bridge s0 protocols=OpenFlow13
 ovs-vsctl set bridge s1 protocols=OpenFlow13
 ovs-vsctl set bridge s2 protocols=OpenFlow13
 ovs-vsctl set bridge s3 protocols=OpenFlow13
 ovs-vsctl set bridge s4 protocols=OpenFlow13
 
 # Print the protocols that each switch supports
-for switch in s1 s2 s3 s4;
+for switch in s0 s1 s2 s3 s4;
 do
     protos=$(ovs-vsctl get bridge $switch protocols)
     echo "Switch $switch supports $protos"
@@ -17,6 +16,9 @@ done
 
 # Avoid having to write "-O OpenFlow13" before all of your ovs-ofctl commands.
 ofctl='ovs-ofctl -O OpenFlow13'
+
+#h1 <-> h4
+echo "Setting up h1 <-> h4"
 
 # OVS rules for switch h1->h4
 $ofctl add-flow s1 \
@@ -43,6 +45,25 @@ $ofctl add-flow s2 \
 
 $ofctl add-flow s1 \
     in_port=3,ip,nw_src=10.0.4.2,nw_dst=10.0.1.2,actions=mod_dl_src:0A:00:01:01:00:01,mod_dl_dst:0A:00:01:02:00:00,output=1
+
+
+
+#h2 <-> h0
+echo "Setting up h2 <-> h0"
+
+# OVS rules for switch h2->h0
+$ofctl add-flow s2 \
+    in_port=1,ip,nw_src=10.0.2.2,nw_dst=10.0.0.2,actions=mod_dl_src:0A:00:0B:FE:00:02,mod_dl_dst:0A:00:0B:01:00:03,output=2
+
+$ofctl add-flow s0 \
+    in_port=3,ip,nw_src=10.0.2.2,nw_dst=10.0.0.2,actions=mod_dl_src:0A:00:00:01:00:01,mod_dl_dst:0A:00:00:02:00:00,output=1
+
+# OVS rules for switch h0->h2
+$ofctl add-flow s0 \
+    in_port=1,ip,nw_src=10.0.0.2,nw_dst=10.0.2.2,actions=mod_dl_src:0A:00:0B:01:00:03,mod_dl_dst:0A:00:0B:FE:00:02,output=3
+
+$ofctl add-flow s2 \
+    in_port=2,ip,nw_src=10.0.0.2,nw_dst=10.0.2.2,actions=mod_dl_src:0A:00:02:01:00:01,mod_dl_dst:0A:00:02:02:00:00,output=1
 
 
 
