@@ -16,3 +16,5 @@ By default both sender and receiver will produce full logging output.
 To reduce the amount of logging output, you can change the `LOG_LEVEL` variable in `sender.py` and `receiver.py` to `logging.WARN` or above
 
 I have a utility script `generate_run_commands.sh` that should create run commands for sender receiver and emulator with free ports. You may use that as a starting point to save time finding which ports are free.
+
+Tested on ubuntu2204-010.student.cs.uwaterloo.ca, b22cui@ubuntu2204-006.student.cs.uwaterloo.ca, b22cui@ubuntu2204-002.student.cs.uwaterloo.ca
