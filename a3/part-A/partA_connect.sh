@@ -77,10 +77,10 @@ $ofctl add-flow s3 \
     in_port=4,ip,nw_src=10.0.6.2,nw_dst=10.0.3.2,actions=mod_dl_src:0A:00:03:01:00:01,mod_dl_dst:0A:00:03:02:00:00,output=1
 
 # OVS rules for switch h3->h6
-$ofctl add-flow s6 \
+$ofctl add-flow s3 \
     in_port=1,ip,nw_src=10.0.3.2,nw_dst=10.0.6.2,actions=mod_dl_src:0A:00:0F:01:00:04,mod_dl_dst:0A:00:0F:FE:00:02,output=4
 
-$ofctl add-flow s3 \
+$ofctl add-flow s6 \
     in_port=2,ip,nw_src=10.0.3.2,nw_dst=10.0.6.2,actions=mod_dl_src:0A:00:06:01:00:01,mod_dl_dst:0A:00:06:02:00:00,output=1
 
 
