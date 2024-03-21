@@ -20,17 +20,17 @@ echo "Setting up alice <-> bob"
 
 # OVS rules for switch alice->bob
 $ofctl add-flow r1 \
-    ip,nw_src=10.1.1.7,nw_dst=10.4.4.48,actions=mod_dl_src:0A:00:01:01:00:02,mod_dl_dst:0A:00:04:01:00:02,output=2
+    ip,nw_src=10.1.1.7,nw_dst=10.4.4.48,actions=output:2
 
 $ofctl add-flow r2 \
-    ip,nw_src=10.1.1.7,nw_dst=10.4.4.48,actions=mod_dl_src:0A:00:03:01:00:01,mod_dl_dst:00:00:00:00:00:02,output=1
+    ip,nw_src=10.1.1.7,nw_dst=10.4.4.48,actions=output:1
 
 # OVS rules for switch bob->alice
 $ofctl add-flow r2 \
-    ip,nw_src=10.4.4.48,nw_dst=10.1.1.7,actions=mod_dl_src:0A:00:04:01:00:02,mod_dl_dst:0A:00:01:01:00:02,output=2
+    ip,nw_src=10.4.4.48,nw_dst=10.1.1.7,actions=output:2
 
 $ofctl add-flow r1 \
-    ip,nw_src=10.4.4.48,nw_dst=10.1.1.7,actions=mod_dl_src:0A:00:00:01:00:01,mod_dl_dst:00:00:00:00:00:01,output=1
+    ip,nw_src=10.4.4.48,nw_dst=10.1.1.7,actions=output:1
 
 
 # Print the flows installed in each switch
