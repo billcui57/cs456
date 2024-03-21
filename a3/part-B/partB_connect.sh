@@ -33,8 +33,26 @@ $ofctl add-flow r1 \
     ip,nw_src=10.4.4.48,nw_dst=10.1.1.7,actions=mod_dl_src:0A:00:00:01:00:01,mod_dl_dst:00:00:00:00:00:01,output=1
 
 
+# bob <-> carol
+echo "Setting up bob <-> carol"
+
+# OVS rules for switch bob->carol
+$ofctl add-flow r2 \
+    ip,nw_src=10.4.4.48,nw_dst=10.6.6.69,actions=mod_dl_src:0A:00:05:01:00:03,mod_dl_dst:0A:00:07:01:00:02,output=3
+
+$ofctl add-flow r3 \
+    ip,nw_src=10.4.4.48,nw_dst=10.6.6.69,actions=mod_dl_src:0A:00:06:01:00:01,mod_dl_dst:00:00:00:00:00:03,output=1
+
+# OVS rules for switch carol->bob
+$ofctl add-flow r3 \
+    ip,nw_src=10.6.6.69,nw_dst=10.4.4.48,actions=mod_dl_src:0A:00:07:01:00:02,mod_dl_dst:0A:00:05:01:00:03,output=2
+
+$ofctl add-flow r2 \
+    ip,nw_src=10.6.6.69,nw_dst=10.4.4.48,actions=mod_dl_src:0A:00:03:01:00:01,mod_dl_dst:00:00:00:00:00:02,output=1
+
+
 # Print the flows installed in each switch
-for switch in r1 r2;
+for switch in r1 r2 r3;
 do
     echo "Flows installed in $switch:"
     $ofctl dump-flows $switch
