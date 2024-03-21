@@ -78,12 +78,12 @@ def run():
         # Add routing table entries for hosts (NOTE: The gateway
 		# IPs 10.0.X.1 are not assigned to switch interfaces)
         alice.cmd( 'route add default gw 10.1.1.14 dev alice-eth0' )
-        bob.cmd( 'route add default gw 10.4.4.48 dev bob-eth0' )
+        bob.cmd( 'route add default gw 10.4.4.14 dev bob-eth0' )
         carol.cmd( 'route add default gw 10.6.6.46 dev carol-eth0' )
 
         # Add arp cache entries for hosts
         alice.cmd( 'arp -s 10.1.1.14 0A:00:00:01:00:01 -i alice-eth0' )
-        bob.cmd( 'arp -s 10.4.4.48 0A:00:03:01:00:01 -i bob-eth0' )
+        bob.cmd( 'arp -s 10.4.4.14 0A:00:03:01:00:01 -i bob-eth0' )
         carol.cmd( 'arp -s 10.6.6.46 0A:00:06:01:00:01 -i carol-eth0' )
 
 
