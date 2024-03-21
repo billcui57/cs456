@@ -83,8 +83,8 @@ def run():
 
         # Add arp cache entries for hosts
         alice.cmd( 'arp -s 10.1.1.14 0A:00:00:01:00:01 -i alice-eth0' )
-        bob.cmd( 'arp -s 10.4.4.48 0A:00:01:01:00:01 -i bob-eth0' )
-        carol.cmd( 'arp -s 10.6.6.46 0A:00:02:01:00:01 -i carol-eth0' )
+        bob.cmd( 'arp -s 10.4.4.48 0A:00:03:01:00:01 -i bob-eth0' )
+        carol.cmd( 'arp -s 10.6.6.46 0A:00:06:01:00:01 -i carol-eth0' )
 
 
         # Open Mininet Command Line Interface
